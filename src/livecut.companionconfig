@@ -1,0 +1,1380 @@
+{
+	"version": 4,
+	"type": "page",
+	"page": {
+		"name": "PAGE",
+		"controls": {
+			"0": {
+				"0": {
+					"type": "button",
+					"style": {
+						"text": "LiveCut",
+						"textExpression": false,
+						"size": "14",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 9605778,
+						"bgcolor": 0,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "-qdiJ1AVjDT2kEzapJl_8",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "progress",
+								"variable": "REPLAY_PROGRESS"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "zov3NXvy165-zV7711rF3",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_PROGRESS",
+								"op": "eq",
+								"value": "true"
+							},
+							"style": {
+								"color": 0,
+								"bgcolor": 16776960
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"1": {
+					"type": "button",
+					"style": {
+						"text": "Save\\nReplay",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "itoIJkwjDbW3CHxAaaevY",
+										"action": "save_replay_buffer",
+										"instance": "3i0Qoco7kdMl9eadmeBrg",
+										"options": {},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"2": {
+					"type": "button",
+					"style": {
+						"text": "Edit\\nReplay\\n$(internal:custom_REPLAY_SLOT_SELECTED)",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "8BO6mgJ7kgEirzEp3Y33N",
+										"action": "send_command",
+										"instance": "JqOpkXNWAF7HZp84imqcE",
+										"options": {
+											"data": "{ \"cmd\": \"EDIT\", \"slot\": $(internal:custom_REPLAY_SLOT_SELECTED) }"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"3": {
+					"type": "button",
+					"style": {
+						"text": "Clear\\nReplay\\n$(internal:custom_REPLAY_SLOT_SELECTED)",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "j-VaekWSmaVSt2FSEWG5s",
+										"action": "send_command",
+										"instance": "JqOpkXNWAF7HZp84imqcE",
+										"options": {
+											"data": "{ \"cmd\": \"CLEAR\", \"slot\": $(internal:custom_REPLAY_SLOT_SELECTED) }"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				}
+			},
+			"1": {
+				"0": {
+					"type": "button",
+					"style": {
+						"text": "Preview Replay",
+						"textExpression": false,
+						"size": "14",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "_kC58KF1OQudaIwmY9w0e",
+										"action": "send_command",
+										"instance": "JqOpkXNWAF7HZp84imqcE",
+										"options": {
+											"data": "{ \"cmd\": \"PREVIEW\", \"slot\": 0 }"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"1": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n1",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "RNgnENlOW_tS4lSIGNw4e",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.0",
+								"variable": "REPLAY_SLOT_1"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "GDS51Ma3qrXQJDCmKLrVX",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_1",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "6u9BBWtAjbRPDrfT-eGR4",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_1",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "c5cUtZMzJvQzhZGeTtVJw",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "1"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"2": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n2",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "-zp4dCLDJPhACLA1uBg7J",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.1",
+								"variable": "REPLAY_SLOT_2"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "7rJYSVODW3BYcg4hHWvXP",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_2",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "I07oloWPn1MzeG4UBTUQx",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_2",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "5iNmpAz5v3bwa7w5rDNy7",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "2"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"3": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n3",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "IjiUSq1-qNc1w8L7Bnju9",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.2",
+								"variable": "REPLAY_SLOT_3"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "gp0DmE2gWvJy-WwwXk4Km",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_3",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "l3Ap5SNUdXGiS6wMbbFJy",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_3",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "tsWkm1l3m7e--q5S9FWFP",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "3"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"4": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n4",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "ddg6ONludeXZ7ZjgX9S_w",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.3",
+								"variable": "REPLAY_SLOT_4"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "Azoxhu4_IV9sOiKVXUaAF",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_4",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "UHhXESQzGEidgRckxy-FB",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_4",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "1l6VxMT85UFU9zlQTzRpv",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "4"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				}
+			},
+			"2": {
+				"0": {
+					"type": "button",
+					"style": {
+						"text": "Export\\nReplay",
+						"textExpression": false,
+						"size": "14",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "VInYJn8kzzDhIuGX4X4NX",
+										"action": "send_command",
+										"instance": "JqOpkXNWAF7HZp84imqcE",
+										"options": {
+											"data": "{ \"cmd\": \"EXPORT\", \"slot\": 0 }"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"1": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n5",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "iz5EWwVYYJgA292wRpOdg",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.4",
+								"variable": "REPLAY_SLOT_5"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "9pXoRUlwz-naqi_RhtxOw",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_5",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "FW6bpPju2VFGM90GzJrrP",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_5",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "i6vqmGP379LqbScSStWfj",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "5"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"2": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n6",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "XPI3S46mYrZN0sNescby6",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.5",
+								"variable": "REPLAY_SLOT_6"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "rxEnDBjN4HOUOmstcFnuf",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_6",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "cDRjRKpYX8zXFW09Pydj9",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_6",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "XnG-MMJb1lBwhfHoavfp9",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "6"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"3": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n7",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "L5qBhQQJYE_3xwZIDUWoa",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.6",
+								"variable": "REPLAY_SLOT_7"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "hXZvJ2juEpKmx4-4ZHTJ7",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_7",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "YusWb9DD9YUuaQKK4cDl1",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_7",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "LF4p9JHpgc1V7yiNtOPvK",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "7"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"4": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n8",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "scIu0RSWpkUm4MlQNv3VT",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.7",
+								"variable": "REPLAY_SLOT_8"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "HutbdIgywJYp-br0qIOB8",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_8",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "BoZYpxuu6tr-norb5Px3n",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_8",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "dr4sSW2ENhsJGSJvyTRv-",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "8"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				}
+			},
+			"3": {
+				"0": {
+					"type": "button",
+					"style": {
+						"text": "Transition\\n$(websocket:REPLAY_TRANSITION)",
+						"textExpression": false,
+						"size": "14",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 26265,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "V0fZeYHkaXxzdcEIToyfu",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "transition",
+								"variable": "REPLAY_TRANSITION"
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "5a1z952WQQfZnrgY3m4sx",
+										"action": "send_command",
+										"instance": "JqOpkXNWAF7HZp84imqcE",
+										"options": {
+											"data": "{ \"cmd\": \"TRANSITION\", \"slot\": 0 }"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"1": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n9",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "3jSy1laR3aUrcRQVRdkgV",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.8",
+								"variable": "REPLAY_SLOT_9"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "N13Y1OLcw7gFveuZ7z1IA",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_9",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "__de5GXROnwIw-TYdA180",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_9",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "ZOR0wWDRNqPYzOLYh5BSa",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "9"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"2": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n10",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "dTcnuSJg5BwWwZ7Dd5Tjt",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.9",
+								"variable": "REPLAY_SLOT_10"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "IrSE6W8Hm7KVmFKi9EuS5",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_10",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "QXP_xj9OtzNrVhrXi0nBM",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_10",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "6LatK1U3hOcsaQmc-jL1N",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "10"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"3": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n11",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "Up4QbQ9J8ndjvX3N5kT9D",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.10",
+								"variable": "REPLAY_SLOT_11"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "ZKO61Q2jFNwYHZrfBLGUL",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_11",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "B7tQ5wnJSLPo5JKSQ_RYF",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_11",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "KiC2oSx5pvrz-jRWtDd7R",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "11"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				},
+				"4": {
+					"type": "button",
+					"style": {
+						"text": "Replay\\n12",
+						"textExpression": false,
+						"size": "18",
+						"png64": null,
+						"alignment": "center:center",
+						"pngalignment": "center:center",
+						"color": 16777215,
+						"bgcolor": 4737096,
+						"show_topbar": "default",
+						"png": null
+					},
+					"options": {
+						"relativeDelay": false,
+						"rotaryActions": false,
+						"stepAutoProgress": true
+					},
+					"feedbacks": [
+						{
+							"id": "S6YiT0ED09deZsR7LbQg4",
+							"type": "websocket_variable",
+							"instance_id": "JqOpkXNWAF7HZp84imqcE",
+							"options": {
+								"subpath": "slots.11",
+								"variable": "REPLAY_SLOT_12"
+							},
+							"isInverted": false
+						},
+						{
+							"id": "ZWl6goHzqcqWLtDLXSDTB",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_12",
+								"op": "eq",
+								"value": "1"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10046464
+							},
+							"isInverted": false
+						},
+						{
+							"id": "NOUtZTCUPB5YB1uVL3Xhi",
+							"type": "variable_value",
+							"instance_id": "internal",
+							"options": {
+								"variable": "websocket:REPLAY_SLOT_12",
+								"op": "eq",
+								"value": "2"
+							},
+							"style": {
+								"color": 16777215,
+								"bgcolor": 10027008
+							},
+							"isInverted": false
+						}
+					],
+					"steps": {
+						"0": {
+							"action_sets": {
+								"down": [
+									{
+										"id": "ni0_BuHORc0zUFH72GGWb",
+										"action": "custom_variable_set_expression",
+										"instance": "internal",
+										"options": {
+											"name": "REPLAY_SLOT_SELECTED",
+											"expression": "12"
+										},
+										"delay": 0
+									}
+								],
+								"up": []
+							},
+							"options": {
+								"runWhileHeld": []
+							}
+						}
+					}
+				}
+			}
+		},
+		"gridSize": {
+			"minColumn": 0,
+			"maxColumn": 7,
+			"minRow": 0,
+			"maxRow": 3
+		}
+	},
+	"instances": {
+		"JqOpkXNWAF7HZp84imqcE": {
+			"instance_type": "generic-websocket",
+			"sortOrder": 5,
+			"label": "websocket",
+			"isFirstInit": false,
+			"config": {
+				"reconnect": true,
+				"append_new_line": true,
+				"reset_variables": true,
+				"url": "ws://127.0.0.1:12345/ws",
+				"debug_messages": true
+			},
+			"lastUpgradeIndex": 0,
+			"enabled": true
+		},
+		"3i0Qoco7kdMl9eadmeBrg": {
+			"instance_type": "obs-studio",
+			"sortOrder": 2,
+			"label": "OBS-Studio-Stream1",
+			"isFirstInit": false,
+			"config": {
+				"port": 4455,
+				"host": "127.0.0.1"
+			},
+			"lastUpgradeIndex": 3,
+			"enabled": true
+		}
+	},
+	"oldPageNumber": 4
+}

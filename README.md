@@ -66,7 +66,17 @@ Installation
 - Install [Lossless Cut](https://github.com/mifi/lossless-cut).
 
 - Install [Bitfocus Companion](https://bitfocus.io/companion)
-  and configure the buttons accordingly (more description soon).
+  and configure a page with the help of the provided
+  [exported configuration](src/livecut,companionconfig).
+
+Usage
+-----
+
+Run **LiveCut** with the following command:
+
+```
+$ npm start
+```
 
 Copyright & License
 -------------------
