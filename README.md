@@ -26,6 +26,19 @@ mixing application and to be controlled remotely via
 [Bitfocus Companion](https://bitfocus.io/companion) and its
 WebSocket plugin.
 
+Sneak Preview
+-------------
+
+In the following screenshot you can see the video mixing
+application [OBS Studio](https://obsproject.com) on
+the left, the web-view of
+[Bitfocus Companion](https://bitfocus.io/companion) at
+the top right and
+[Lossless Cut](https://github.com/mifi/lossless-cut) and
+the bottom right.
+
+![screenshot](screenshot.png)
+
 Installation
 ------------
 
