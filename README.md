@@ -7,29 +7,66 @@ LiveCut
 About
 -----
 
-**LiveCut** is a server application for the live cutting
+**LiveCut** is a [Node.js](https://nodejs.org) application for the live cutting
 of video replay snippets during a live event.
 
 **LiveCut** watches a directory where a video mixing application like
 [OBS Studio](https://obsproject.com) or [vMix](https://www.vmix.com)
 save their replay buffers as video snippets, transfers those
-video snippets to a processing area of N slots, allows one
-to cut each video snippets with the help of the video cutter
-[Lossless Cut](https://github.com/mifi/lossless-cut), and
-finally renders an event highlight video by concatenating
-all replay video snippets with transitions with the help of
-[FFmpeg-Concat](https://www.npmjs.com/package/ffmpeg-concat).
+video snippets to an own processing area of N replay slots, allows one
+to cut each replay video snippet with the help of the video cutting
+application [Lossless Cut](https://github.com/mifi/lossless-cut), and
+finally renders an event summarization/highlight video by concatenating
+all replay video snippets with smooth transitions with the help of
+[FFmpeg-Concat](https://www.npmjs.com/package/ffmpeg-concat)
+and the GLSL-based [GL Transitions](https://gl-transitions.com/).
+
+**LiveCut** is intended to be running side-by-side to the video
+mixing application and to be controlled remotely via
+[Bitfocus Companion](https://bitfocus.io/companion) and its
+WebSocket plugin.
 
 Installation
 ------------
 
-```
-$ winget install ffmpeg
-$ winget install python3
-$ python3 -m pip install packaging
-$ python3 -m pip install setuptools
-$ npm install
-```
+- Install [OBS Studio](https://obsproject.com), enable
+  its replay mechanism under <i>Settings</i> &rarr;
+  <i>Output</i> &rarr; <i>Replay Buffer</i>,
+  configure the output directory under <i>Settings</i> &rarr;
+  <i>Output</i> &rarr; <i>Recording</i>,
+  configure its output filename under <i>Settings</i> &rarr;
+  <i>Advanced</i> &rarr; <i>Recording</i>,
+  and enable its WebSocket interface under
+  <i>Tools</i> &rarr; <i>WebSocket Server Settings</i>.
+
+- Install [Node.js](https://nodejs.org) runtime environment.
+
+- Install [Node.js](https://nodejs.org) extra dependencies:
+
+    ```
+    $ winget install python3
+    $ python3 -m pip install packaging
+    $ python3 -m pip install setuptools
+    ```
+
+- Install [FFmpeg](https://www.ffmpeg.org) via:
+
+    ```
+    $ winget install ffmpeg
+    ```
+
+- Install [**LiveCut**](https://github.com/rse/livecut):
+
+    ```
+    $ git clone https://github.com/rse/livecut
+    $ cd livecut
+    $ npm install
+    ```
+
+- Install [Lossless Cut](https://github.com/mifi/lossless-cut).
+
+- Install [Bitfocus Companion](https://bitfocus.io/companion)
+  and configure the buttons accordingly (more description soon).
 
 Copyright & License
 -------------------
