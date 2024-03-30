@@ -4,9 +4,12 @@
 **  Licensed under GPL 3.0 <https://spdx.org/licenses/GPL-3.0-only>
 */
 
+/*  import built-in dependencies  */
 import path           from "node:path"
 import http           from "node:http"
 import fs             from "node:fs"
+
+/*  import external dependencies  */
 import { sprintf }    from "sprintf-js"
 import CLIio          from "cli-io"
 import yargs          from "yargs"
@@ -18,10 +21,16 @@ import { Server }     from "@hapi/hapi"
 import HAPIWebSocket  from "hapi-plugin-websocket"
 import WebSocket      from "ws"
 import ffmpegConcat   from "ffmpeg-concat"
+
+/*  import own dependencies  */
 import pkg            from "../package.json"
 
+/*  keep CLI environment in outmost context  */
 let cli: CLIio | null = null
+
+/*  establish asynchronous environment  */
 ;(async () => {
+    /*  dynamically import external dependencies (workaround)  */
     const { type } = await import("arktype")
 
     /*  parse command-line arguments  */
@@ -37,6 +46,8 @@ let cli: CLIio | null = null
             "[-q|--queue <directory>] " +
             "[-Q|--queue-slots <number>] " +
             "[-o|--output <file>] " +
+            "[-c|--losslesscut <program>] " +
+            "[-t|--transition <transition-id>] " +
             "[-a|--http-addr <ip-address>] " +
             "[-p|--http-port <tcp-port>]")
         .help("h").alias("h", "help").default("h", false)
@@ -57,6 +68,8 @@ let cli: CLIio | null = null
             .describe("o", "filename of output file")
         .string("c").nargs("c", 1).alias("c", "losslesscut").default("c", "C:\\Program Files\\LosslessCut\\LosslessCut.exe")
             .describe("c", "path to LosslessCut.exe")
+        .string("t").nargs("t", 1).alias("t", "transition").default("t", "swap")
+            .describe("t", "name of GL transition to use for exporting")
         .string("a").nargs("a", 1).alias("a", "http-addr").default("a", "127.0.0.1")
             .describe("a", "HTTP/Websocket listen IP address")
         .number("p").nargs("p", 1).alias("p", "http-port").default("p", 12345)
@@ -76,49 +89,51 @@ let cli: CLIio | null = null
         process.exit(0)
     }
 
-    /*  establish CLI environment  */
+    /*  initialize CLI environment  */
     cli = new CLIio({
         encoding:  "utf8",
         logLevel:  args.logLevel,
         logTime:   false,
         logPrefix: pkg.name
     })
-    cli!.log("info", `starting LiveCut service ${pkg.version}`)
+    cli!.log("info", `main: starting LiveCut service ${pkg.version}`)
 
-    /*  WebSocket state  */
+    /*  establish WebSocket state  */
     type wsPeerCtx = { id: string }
     type wsPeerInfo = { ctx: wsPeerCtx, ws: WebSocket, req: http.IncomingMessage }
     const wsPeers = new Map<string, wsPeerInfo>()
 
-    /*  notify clients about state  */
+    /*  establish replay slot state  */
+    enum SlotStates { CLEAR = 0, UNCUTTED = 1, CUTTED = 2 }
+    let progress = false
+    const slotState = [] as SlotStates[]
+    for (let i = 0; i < args.queueSlots!; i++)
+        slotState[i] = SlotStates.CLEAR
+
+    /*  notify clients about new replay slot state  */
     const notifyState = () => {
-        const msg = JSON.stringify({ slots: slotState })
+        const msg = JSON.stringify({ slots: slotState, progress })
         for (const id of wsPeers.keys()) {
             const info = wsPeers.get(id)!
-            cli!.log("info", `WebSocket: notify: remote=${id} msg=${msg}`)
+            cli!.log("info", `WebSocket: notify: remote=${id}`)
             if (info.ws.readyState === WebSocket.OPEN)
                 info.ws.send(msg)
         }
     }
 
-    /*  internal slot state  */
-    enum SlotStates { CLEAR = 0, UNCUTTED = 1, CUTTED = 2 }
-    const slotState = [] as SlotStates[]
-    for (let i = 0; i < args.queueSlots!; i++)
-        slotState[i] = SlotStates.CLEAR
-
-    /*  determine filename of process queue slot  */
+    /*  utility function: determine filename of replay slot  */
     const slotName = (slot: number, cutted = false, llc = false) =>
         path.join(args.queue!, sprintf("replay-%02d%s.%s", slot,
             cutted && !llc ? "-cutted" : (llc ? "-proj" : ""), llc ? "llc" : "mp4"))
 
-    /*  determine whether slot is used  */
+    /*  utility function: determine whether replay slot is used  */
     const slotUsed = async (slot: number, cutted = false, llc = false) =>
-        await fs.promises.stat(slotName(slot, cutted, llc)).then(() => true).catch(() => false)
+        await fs.promises.stat(slotName(slot, cutted, llc))
+            .then(() => true).catch(() => false)
 
-    /*  move a slot  */
+    /*  utility function: move content between replay slots  */
     const slotMove = async (slotSrc: number, slotDst: number) => {
-        cli?.log("info", `moving slot ${slotSrc} to ${slotDst}`)
+        cli?.log("info", `replay slots: moving content from slot #${slotSrc} to #${slotDst}`)
         await fs.promises.rename(slotName(slotSrc), slotName(slotDst))
         if (await slotUsed(slotSrc, true))
             await fs.promises.rename(slotName(slotSrc, true), slotName(slotDst, true))
@@ -129,9 +144,9 @@ let cli: CLIio | null = null
         notifyState()
     }
 
-    /*  clear a slot  */
+    /*  utility function: clear content in replay slot  */
     const slotClear = async (slot: number) => {
-        cli?.log("info", `removing slot ${slot}`)
+        cli?.log("info", `replay slots: removing content in slot #${slot}`)
         if (await slotUsed(slot))
             await fs.promises.unlink(slotName(slot))
         if (await slotUsed(slot, true))
@@ -142,7 +157,7 @@ let cli: CLIio | null = null
         notifyState()
     }
 
-    /*  determine next free process queue slot  */
+    /*  utility function: determine next free replay slot  */
     const slotFree = async () => {
         let slot = 1
         while (slot <= args.queueSlots!) {
@@ -155,8 +170,8 @@ let cli: CLIio | null = null
         return slot
     }
 
-    /*  helper function for shrinking process queue slots  */
-    const slotShrink = async () => {
+    /*  utility function: compress the content into continuous list of replay slots  */
+    const slotCompress = async () => {
         let slot = 1
         while (slot <= args.queueSlots!) {
             if (!(await slotUsed(slot))) {
@@ -178,59 +193,67 @@ let cli: CLIio | null = null
         }
     }
 
-    /*  determine current slot state  */
+    /*  utility function: update replay slot states from disk  */
     const slotUpdateState = async () => {
         let slot = 1
         while (slot <= args.queueSlots!) {
             const existsCutted   = await fs.promises.stat(slotName(slot, true)).then(() => true).catch(() => false)
             const existsOriginal = await fs.promises.stat(slotName(slot, false)).then(() => true).catch(() => false)
-            if (existsCutted && existsOriginal)
-                slotState[slot - 1] = SlotStates.CUTTED
-            else if (existsOriginal)
-                slotState[slot - 1] = SlotStates.UNCUTTED
-            else
-                slotState[slot - 1] = SlotStates.CLEAR
+            if      (existsCutted && existsOriginal) slotState[slot - 1] = SlotStates.CUTTED
+            else if (existsOriginal)                 slotState[slot - 1] = SlotStates.UNCUTTED
+            else                                     slotState[slot - 1] = SlotStates.CLEAR
             slot++
         }
-        cli?.log("info", `updated slot state (${slotState.join(", ")})`)
+        cli?.log("info", "replay slots: updated internal state")
         notifyState()
     }
+
+    /*  initially once update replay slot states from disk  */
     await slotUpdateState()
 
-    /*  edit a slot  */
+    /*  determine our custom Lossless Cut settings  */
     const losslessCutSettings = await fs.promises.readFile(path.join(__dirname, "losslesscut.json"), "utf8")
+
+    /*  command function: edit a replay slot  */
     const cmdEdit = async (slot: number) => {
-        cli?.log("info", `EDIT: edit slot #${slot}`)
+        cli?.log("info", `command: EDIT: edit replay slot #${slot}`)
         if (!(await slotUsed(slot))) {
-            cli!.log("error", `EDIT: cannot edit slot #${slot}: still not used`)
+            cli!.log("error", `command: EDIT: cannot edit slot #${slot}: still not used`)
             return
         }
         const filename = slotName(slot)
+        progress = true
+        notifyState()
         await execa(args.losslesscut!, [ "--settings-json", losslessCutSettings, filename ], {
             stdio:       "ignore",
             detached:    true,
             windowsHide: false
+        }).catch((err: Error) => {
+            cli!.log("error", `command: EDIT: LosslessCut: ${err}`)
+            return true
         })
+        progress = false
+        notifyState()
         await slotUpdateState()
     }
 
-    /*  command: clear a slot  */
+    /*  command function: clear a replay slot  */
     const cmdClear = async (slot: number) => {
-        cli?.log("info", `CLEAR: remove slot #${slot}`)
+        cli?.log("info", `command: CLEAR: remove slot #${slot}`)
         if (!(await slotUsed(slot))) {
-            cli!.log("error", `CLEAR: cannot clear slot #${slot}: still not used (already clear)`)
+            cli!.log("error", `command: CLEAR: cannot clear slot #${slot}: still not used (already clear)`)
             return
         }
         await slotClear(slot)
-        await slotShrink()
+        await slotCompress()
     }
 
-    /*  command: export all slots  */
+    /*  command function: export all replay slots  */
     const cmdExport = async () => {
-        cli?.log("info", "EXPORT: generate all-in-one replay video")
+        cli?.log("info", "command: EXPORT: generate all-in-one replay video")
 
-        /*  ensure we are in sane situation (should be not necessary)  */
-        await slotShrink()
+        /*  ensure we are in sane situation (should be not really necessary)  */
+        await slotCompress()
         await slotUpdateState()
 
         /*  determine cutted replays  */
@@ -238,25 +261,33 @@ let cli: CLIio | null = null
         for (let i = 0; i < args.queueSlots!; i++)
             if (await slotUsed(i, true))
                 replays.push(slotName(i, true))
+        if (replays.length === 0) {
+            cli!.log("error", "command: EXPORT: no cutted replays available")
+            return
+        }
 
-        /*  concatenate cutted replays  */
+        /*  concatenate cutted videos of all replay slots  */
         cli?.log("info", "EXPORT: FFmpeg process: start")
+        progress = true
+        notifyState()
         await ffmpegConcat({
             output: args.output!,
             videos: replays,
             transition: {
-                name: "swap",
+                name: args.transition!,
                 duration: 800
-            },
-            log (msg: string) {
-                cli?.log("info", `EXPORT: FFmpeg: ${msg}`)
             }
+        }).catch((err: Error) => {
+            cli!.log("error", `command: EXPORT: FFmpeg: ${err}`)
+            return true
         })
-        cli?.log("info", "EXPORT: FFmpeg process: end")
+        progress = false
+        notifyState()
+        cli?.log("info", "command: EXPORT: FFmpeg process: end")
     }
 
     /*  establish network service  */
-    cli!.log("info", `starting HTTP/WS service on ${args.httpAddr}:${args.httpPort}`)
+    cli!.log("info", `main: starting HAPI HTTP/WebSocket service on ${args.httpAddr}:${args.httpPort}`)
     const server = new Server({ address: args.httpAddr, port: args.httpPort })
     await server.register({ plugin: HAPIWebSocket })
 
@@ -279,26 +310,18 @@ let cli: CLIio | null = null
     })
     server.events.on({ name: "request", channels: [ "error" ] },
         (request: HAPI.Request, event: HAPI.RequestEvent, _tags: { [key: string]: true }) => {
-        if (event.error instanceof Error)
-            cli!.log("error", `HAPI: ${event.error.message}`)
-        else
-            cli!.log("error", `HAPI: ${event.error}`)
+        const error = (event.error instanceof Error ? event.error.message : `${event.error}`)
+        cli!.log("error", `HAPI: ${error}`)
     })
     server.events.on("log", (event: HAPI.LogEvent, tags: { [key: string]: true }) => {
         if (tags.error) {
-            const err = event.error
-            if (err instanceof Error)
-                cli!.log("error", `HAPI: ${err.message}`)
-            else
-                cli!.log("error", `HAPI: ${err}`)
+            const error = (event.error instanceof Error ? event.error.message : `${event.error}`)
+            cli!.log("error", `HAPI: ${error}`)
         }
     })
 
     /*  serve WebSocket connections  */
-    const WebSocketCommand = type({
-        cmd:  "string",
-        slot: "number"
-    })
+    const WebSocketCommand = type({ cmd: "string", slot: "number" })
     server.route({
         method: "POST",
         path:   "/ws",
@@ -316,7 +339,7 @@ let cli: CLIio | null = null
                         const id = `${req.socket.remoteAddress}:${req.socket.remotePort}`
                         ctx.id = id
                         wsPeers.set(id, { ctx, ws, req })
-                        cli!.log("info", `WebSocket: connect: remote=${id}`)
+                        cli!.log("info", `HAPI: WebSocket: connect: remote=${id}`)
                         notifyState()
                     },
 
@@ -325,7 +348,7 @@ let cli: CLIio | null = null
                         const ctx: wsPeerCtx = args.ctx
                         const id = ctx.id
                         wsPeers.delete(id)
-                        cli!.log("info", `WebSocket: disconnect: remote=${id}`)
+                        cli!.log("info", `HAPI: WebSocket: disconnect: remote=${id}`)
                     }
                 }
             }
@@ -352,7 +375,7 @@ let cli: CLIio | null = null
     await server.start()
 
     /*  watch the input directory  */
-    cli.log("info", `start watching input directory "${args.input}"`)
+    cli.log("info", `main: start watching input directory "${args.input}"`)
     const watcher = chokidar.watch(args.input!, {
         persistent: true,
         awaitWriteFinish: {
@@ -361,7 +384,7 @@ let cli: CLIio | null = null
         }
     })
     watcher.on("error", (error: Error) => {
-        cli!.log("error", `chikodar: ${error.message}`)
+        cli!.log("error", `main: error watching input directory: ${error.message}`)
     })
     let queue = Promise.resolve()
     watcher.on("add", async (p: string) => {
@@ -371,7 +394,7 @@ let cli: CLIio | null = null
         queue = queue.then(async () => {
             const slot = await slotFree()
             const slotPath = slotName(slot)
-            cli!.log("info", `new input file "${file}": taking over into process slot #${slot}`)
+            cli!.log("info", `main: new input file "${file}": taking over into process slot #${slot}`)
             await fs.promises.rename(p, slotPath)
             slotState[slot - 1] = SlotStates.UNCUTTED
             notifyState()
@@ -380,7 +403,7 @@ let cli: CLIio | null = null
 
     /*  catch CTRL-C  */
     process.on("SIGINT", async () => {
-        cli!.log("error", "process interrupted (SIGINT) -- terminating")
+        cli!.log("error", "main: process interrupted (SIGINT) -- terminating process")
         await server.stop()
         await watcher.close()
         process.exit(1)
