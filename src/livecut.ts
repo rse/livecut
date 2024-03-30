@@ -68,7 +68,7 @@ let cli: CLIio | null = null
             .describe("o", "filename of output file")
         .string("c").nargs("c", 1).alias("c", "losslesscut").default("c", "C:\\Program Files\\LosslessCut\\LosslessCut.exe")
             .describe("c", "path to LosslessCut.exe")
-        .string("t").nargs("t", 1).alias("t", "transition").default("t", "SWAP")
+        .string("t").nargs("t", 1).alias("t", "transition").default("t", "DREA")
             .describe("t", "name of GL transition to use for exporting")
         .string("a").nargs("a", 1).alias("a", "http-addr").default("a", "127.0.0.1")
             .describe("a", "HTTP/Websocket listen IP address")
