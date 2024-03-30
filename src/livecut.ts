@@ -68,7 +68,7 @@ let cli: CLIio | null = null
             .describe("o", "filename of output file")
         .string("c").nargs("c", 1).alias("c", "losslesscut").default("c", "C:\\Program Files\\LosslessCut\\LosslessCut.exe")
             .describe("c", "path to LosslessCut.exe")
-        .string("t").nargs("t", 1).alias("t", "transition").default("t", "swap")
+        .string("t").nargs("t", 1).alias("t", "transition").default("t", "SWAP")
             .describe("t", "name of GL transition to use for exporting")
         .string("a").nargs("a", 1).alias("a", "http-addr").default("a", "127.0.0.1")
             .describe("a", "HTTP/Websocket listen IP address")
@@ -106,13 +106,29 @@ let cli: CLIio | null = null
     /*  establish replay slot state  */
     enum SlotStates { CLEAR = 0, UNCUTTED = 1, CUTTED = 2 }
     let progress = false
+    const transitions = {
+        /*  see https://gl-transitions.com/gallery  */
+        "WARP": "directionalwarp",
+        "ZOOM": "crosszoom",
+        "FADE": "fade",
+        "CUBE": "cube",
+        "SWAP": "swap",
+        "WIPE": "wipeleft",
+        "MRPH": "morph",
+        "DREA": "dreamy",
+        "RADI": "radial",
+        "RIPP": "ripple"
+    }
+    let transition: keyof typeof transitions = args.transition! as keyof typeof transitions
+    if (!transition)
+        throw new Error(`invalid initial export transition ${args.transition}`)
     const slotState = [] as SlotStates[]
     for (let i = 0; i < args.queueSlots!; i++)
         slotState[i] = SlotStates.CLEAR
 
     /*  notify clients about new replay slot state  */
     const notifyState = () => {
-        const msg = JSON.stringify({ slots: slotState, progress })
+        const msg = JSON.stringify({ slots: slotState, progress, transition })
         for (const id of wsPeers.keys()) {
             const info = wsPeers.get(id)!
             cli!.log("info", `WebSocket: notify: remote=${id}`)
@@ -248,6 +264,15 @@ let cli: CLIio | null = null
         await slotCompress()
     }
 
+    /*  command function: transition change  */
+    const cmdTransition = async () => {
+        const T = Object.keys(transitions) as Array<keyof typeof transitions>
+        const i = (T.findIndex((t) => t === transition) + 1) % T.length
+        cli?.log("info", `command: TRANSITION: cycle transitions from ${transition} to ${T[i]}`)
+        transition = T[i]
+        notifyState()
+    }
+
     /*  command function: export all replay slots  */
     const cmdExport = async () => {
         cli?.log("info", "command: EXPORT: generate all-in-one replay video")
@@ -274,8 +299,8 @@ let cli: CLIio | null = null
             output: args.output!,
             videos: replays,
             transition: {
-                name: args.transition!,
-                duration: 800
+                name: transitions[transition],
+                duration: 500
             }
         }).catch((err: Error) => {
             cli!.log("error", `command: EXPORT: FFmpeg: ${err}`)
@@ -284,6 +309,23 @@ let cli: CLIio | null = null
         progress = false
         notifyState()
         cli?.log("info", "command: EXPORT: FFmpeg process: end")
+    }
+
+    /*  command function: preview exported replay slots  */
+    const cmdPreview = async () => {
+        cli?.log("info", "command: PREVIEW: open exported video")
+        progress = true
+        notifyState()
+        await execa(args.losslesscut!, [ "--settings-json", losslessCutSettings, args.output! ], {
+            stdio:       "ignore",
+            detached:    true,
+            windowsHide: false
+        }).catch((err: Error) => {
+            cli!.log("error", `command: PREVIEW: LosslessCut: ${err}`)
+            return true
+        })
+        progress = false
+        notifyState()
     }
 
     /*  establish network service  */
@@ -363,8 +405,12 @@ let cli: CLIio | null = null
                 await cmdEdit(data.slot)
             else if (data.cmd === "CLEAR" && 1 <= data.slot && data.slot <= args.queueSlots!)
                 await cmdClear(data.slot)
+            else if (data.cmd === "TRANSITION" && data.slot === 0)
+                await cmdTransition()
             else if (data.cmd === "EXPORT" && data.slot === 0)
                 await cmdExport()
+            else if (data.cmd === "PREVIEW" && data.slot === 0)
+                await cmdPreview()
             else
                 return Boom.badRequest("invalid command in request")
             return h.response({}).code(200)
