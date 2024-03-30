@@ -108,16 +108,17 @@ let cli: CLIio | null = null
     let progress = false
     const transitions = {
         /*  see https://gl-transitions.com/gallery  */
-        "WARP": "directionalwarp",
-        "ZOOM": "crosszoom",
-        "FADE": "fade",
-        "CUBE": "cube",
-        "SWAP": "swap",
-        "WIPE": "wipeleft",
-        "MRPH": "morph",
-        "DREA": "dreamy",
-        "RADI": "radial",
-        "RIPP": "ripple"
+        "CUTX": { name: "fade",            time: 33  }, /* special case: emulation of a CUT transition */
+        "FADE": { name: "fade",            time: 500 },
+        "ZOOM": { name: "crosszoom",       time: 500 },
+        "MRPH": { name: "morph",           time: 500 },
+        "DREA": { name: "dreamy",          time: 500 },
+        "RIPP": { name: "ripple",          time: 500 },
+        "WARP": { name: "directionalwarp", time: 500 },
+        "WIPE": { name: "wipeleft",        time: 500 },
+        "RADI": { name: "radial",          time: 500 },
+        "CUBE": { name: "cube",            time: 800 },
+        "SWAP": { name: "swap",            time: 800 }
     }
     let transition: keyof typeof transitions = args.transition! as keyof typeof transitions
     if (!transition)
@@ -299,8 +300,8 @@ let cli: CLIio | null = null
             output: args.output!,
             videos: replays,
             transition: {
-                name: transitions[transition],
-                duration: 500
+                name:     transitions[transition].name,
+                duration: transitions[transition].time
             }
         }).catch((err: Error) => {
             cli!.log("error", `command: EXPORT: FFmpeg: ${err}`)
