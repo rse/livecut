@@ -114,7 +114,7 @@ let cli: CLIio | null = null
 
     /*  determine whether slot is used  */
     const slotUsed = async (slot: number, cutted = false, llc = false) =>
-        await fs.promises.stat(slotName(slot, cutted, llc)).then(() => true).catch((err) => false)
+        await fs.promises.stat(slotName(slot, cutted, llc)).then(() => true).catch(() => false)
 
     /*  move a slot  */
     const slotMove = async (slotSrc: number, slotDst: number) => {
@@ -124,7 +124,7 @@ let cli: CLIio | null = null
             await fs.promises.rename(slotName(slotSrc, true), slotName(slotDst, true))
         if (await slotUsed(slotSrc, true, true))
             await fs.promises.rename(slotName(slotSrc, true, true), slotName(slotDst, true, true))
-        slotState[slotDst - 1] = slotState[slotSrc -1]
+        slotState[slotDst - 1] = slotState[slotSrc - 1]
         slotState[slotSrc - 1] = SlotStates.CLEAR
         notifyState()
     }
@@ -182,8 +182,8 @@ let cli: CLIio | null = null
     const slotUpdateState = async () => {
         let slot = 1
         while (slot <= args.queueSlots!) {
-            const existsCutted   = await fs.promises.stat(slotName(slot, true)).then(() => true).catch((err) => false)
-            const existsOriginal = await fs.promises.stat(slotName(slot, false)).then(() => true).catch((err) => false)
+            const existsCutted   = await fs.promises.stat(slotName(slot, true)).then(() => true).catch(() => false)
+            const existsOriginal = await fs.promises.stat(slotName(slot, false)).then(() => true).catch(() => false)
             if (existsCutted && existsOriginal)
                 slotState[slot - 1] = SlotStates.CUTTED
             else if (existsOriginal)
@@ -278,7 +278,7 @@ let cli: CLIio | null = null
         cli!.log("info", `HAPI: request: ${msg}`)
     })
     server.events.on({ name: "request", channels: [ "error" ] },
-        (request: HAPI.Request, event: HAPI.RequestEvent, tags: { [key: string]: true }) => {
+        (request: HAPI.Request, event: HAPI.RequestEvent, _tags: { [key: string]: true }) => {
         if (event.error instanceof Error)
             cli!.log("error", `HAPI: ${event.error.message}`)
         else
@@ -331,8 +331,6 @@ let cli: CLIio | null = null
             }
         },
         handler: async (request: HAPI.Request, h: HAPI.ResponseToolkit) => {
-            /*  on WebSocket message transfer  */
-            const { ctx, ws } = request.websocket()
             if (typeof request.payload !== "object" || request.payload === null)
                 return Boom.badRequest("invalid request")
             const { data, problems } = WebSocketCommand(request.payload)

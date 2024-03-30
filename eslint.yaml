@@ -54,4 +54,8 @@ rules:
     symbol-description:                  off
     no-useless-constructor:              off
     multiline-ternary:                   off
+    yoda:                                off
+    no-unused-vars:                      off
+    "@typescript-eslint/no-explicit-any": off
+    "@typescript-eslint/no-unused-vars": [ "error", { "argsIgnorePattern": "^_" } ]
     
