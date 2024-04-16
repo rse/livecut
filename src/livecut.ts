@@ -106,7 +106,7 @@ let cli: CLIio | null = null
     /*  establish replay slot state  */
     enum SlotStates { CLEAR = 0, UNCUTTED = 1, CUTTED = 2 }
     let progress = false
-    const transitions = {
+    const transitions: { [ name: string ]: { name: string, time: number, params?: any } } = {
         /*  see https://gl-transitions.com/gallery  */
         "CUTX": { name: "fade",            time: 33  }, /* special case: emulation of a CUT transition */
         "FADE": { name: "fade",            time: 500 },
@@ -114,11 +114,12 @@ let cli: CLIio | null = null
         "MRPH": { name: "morph",           time: 500 },
         "DREA": { name: "dreamy",          time: 500 },
         "RIPP": { name: "ripple",          time: 500 },
-        "WARP": { name: "directionalwarp", time: 500 },
+        "WARP": { name: "directionalwarp", time: 500, params: { direction: [ 1, 0 ] } },
         "WIPE": { name: "wipeleft",        time: 500 },
         "RADI": { name: "radial",          time: 500 },
         "CUBE": { name: "cube",            time: 800 },
-        "SWAP": { name: "swap",            time: 800 }
+        "SWAP": { name: "swap",            time: 800 },
+        "PERL": { name: "perlin",          time: 500, params: { scale: 4.0, smoothness: 0.01, seed: 12.9898 } }
     }
     let transition: keyof typeof transitions = args.transition! as keyof typeof transitions
     if (!transition)
@@ -301,7 +302,8 @@ let cli: CLIio | null = null
             videos: replays,
             transition: {
                 name:     transitions[transition].name,
-                duration: transitions[transition].time
+                duration: transitions[transition].time,
+                ...(transitions[transition].params ? { params: transitions[transition].params } : {})
             }
         }).catch((err: Error) => {
             cli!.log("error", `command: EXPORT: FFmpeg: ${err}`)
