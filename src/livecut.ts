@@ -21,6 +21,7 @@ import { Server }     from "@hapi/hapi"
 import HAPIWebSocket  from "hapi-plugin-websocket"
 import WebSocket      from "ws"
 import ffmpegConcat   from "ffmpeg-concat"
+import ffmpeg         from "fluent-ffmpeg"
 
 /*  import own dependencies  */
 import pkg            from "../package.json"
@@ -140,23 +141,35 @@ let cli: CLIio | null = null
     }
 
     /*  utility function: determine filename of replay slot  */
-    const slotName = (slot: number, cutted = false, llc = false) =>
-        path.join(args.queue!, sprintf("replay-%02d%s.%s", slot,
-            cutted && !llc ? "-cutted" : (llc ? "-proj" : ""), llc ? "llc" : "mp4"))
+    const slotName = (slot: number, type: "orig" | "cutted" | "faded" | "proj" = "orig") => {
+        let tag = ""
+        let ext = "mp4"
+        if (type === "cutted")
+            tag = "-cutted"
+        else if (type === "faded")
+            tag = "-faded"
+        else if (type === "proj") {
+            tag = "-proj"
+            ext = "llc"
+        }
+        return path.join(args.queue!, sprintf("replay-%02d%s.%s", slot, tag, ext))
+    }
 
     /*  utility function: determine whether replay slot is used  */
-    const slotUsed = async (slot: number, cutted = false, llc = false) =>
-        await fs.promises.stat(slotName(slot, cutted, llc))
+    const slotUsed = async (slot: number, type: "orig" | "cutted" | "faded" | "proj" = "orig") =>
+        await fs.promises.stat(slotName(slot, type))
             .then(() => true).catch(() => false)
 
     /*  utility function: move content between replay slots  */
     const slotMove = async (slotSrc: number, slotDst: number) => {
         cli?.log("info", `replay slots: moving content from slot #${slotSrc} to #${slotDst}`)
         await fs.promises.rename(slotName(slotSrc), slotName(slotDst))
-        if (await slotUsed(slotSrc, true))
-            await fs.promises.rename(slotName(slotSrc, true), slotName(slotDst, true))
-        if (await slotUsed(slotSrc, true, true))
-            await fs.promises.rename(slotName(slotSrc, true, true), slotName(slotDst, true, true))
+        if (await slotUsed(slotSrc, "cutted"))
+            await fs.promises.rename(slotName(slotSrc, "cutted"), slotName(slotDst, "cutted"))
+        if (await slotUsed(slotSrc, "faded"))
+            await fs.promises.rename(slotName(slotSrc, "faded"), slotName(slotDst, "faded"))
+        if (await slotUsed(slotSrc, "proj"))
+            await fs.promises.rename(slotName(slotSrc, "proj"), slotName(slotDst, "proj"))
         slotState[slotDst - 1] = slotState[slotSrc - 1]
         slotState[slotSrc - 1] = SlotStates.CLEAR
         notifyState()
@@ -167,10 +180,12 @@ let cli: CLIio | null = null
         cli?.log("info", `replay slots: removing content in slot #${slot}`)
         if (await slotUsed(slot))
             await fs.promises.unlink(slotName(slot))
-        if (await slotUsed(slot, true))
-            await fs.promises.unlink(slotName(slot, true))
-        if (await slotUsed(slot, true, true))
-            await fs.promises.unlink(slotName(slot, true, true))
+        if (await slotUsed(slot, "cutted"))
+            await fs.promises.unlink(slotName(slot, "cutted"))
+        if (await slotUsed(slot, "faded"))
+            await fs.promises.unlink(slotName(slot, "faded"))
+        if (await slotUsed(slot, "proj"))
+            await fs.promises.unlink(slotName(slot, "proj"))
         slotState[slot - 1] = SlotStates.CLEAR
         notifyState()
     }
@@ -215,8 +230,8 @@ let cli: CLIio | null = null
     const slotUpdateState = async () => {
         let slot = 1
         while (slot <= args.queueSlots!) {
-            const existsCutted   = await fs.promises.stat(slotName(slot, true)).then(() => true).catch(() => false)
-            const existsOriginal = await fs.promises.stat(slotName(slot, false)).then(() => true).catch(() => false)
+            const existsCutted   = await fs.promises.stat(slotName(slot, "cutted")).then(() => true).catch(() => false)
+            const existsOriginal = await fs.promises.stat(slotName(slot, "orig")).then(() => true).catch(() => false)
             if      (existsCutted && existsOriginal) slotState[slot - 1] = SlotStates.CUTTED
             else if (existsOriginal)                 slotState[slot - 1] = SlotStates.UNCUTTED
             else                                     slotState[slot - 1] = SlotStates.CLEAR
@@ -277,8 +292,6 @@ let cli: CLIio | null = null
 
     /*  command function: export all replay slots  */
     const cmdExport = async () => {
-        cli?.log("info", "command: EXPORT: generate all-in-one replay video")
-
         /*  ensure we are in sane situation (should be not really necessary)  */
         await slotCompress()
         await slotUpdateState()
@@ -286,22 +299,51 @@ let cli: CLIio | null = null
         /*  determine cutted replays  */
         const replays = []
         for (let i = 0; i < args.queueSlots!; i++)
-            if (await slotUsed(i, true))
-                replays.push(slotName(i, true))
+            if (await slotUsed(i, "cutted"))
+                replays.push(i)
         if (replays.length === 0) {
             cli!.log("error", "command: EXPORT: no cutted replays available")
             return
         }
 
-        /*  concatenate cutted videos of all replay slots  */
+        /*  indicate start of processing  */
         cli?.log("info", "EXPORT: FFmpeg process: start")
         progress = true
         notifyState()
+
+        /*  fade in/out audio tracks for smoother transition  */
+        cli?.log("info", "command: EXPORT: audio-faded replay videos")
+        for (const i of replays) {
+            const duration = await new Promise<number>((resolve, reject) => {
+                ffmpeg.ffprobe(slotName(i, "cutted"), (err: Error, data: any) => {
+                    if (err)
+                        reject(err)
+                    if (typeof data?.format?.duration !== "number")
+                        reject(new Error("invalid response"))
+                    resolve(data.format.duration)
+                })
+            })
+            const fade = 0.20
+            await new Promise((resolve, reject) => {
+                ffmpeg(slotName(i, "cutted"))
+                    .output(slotName(i, "faded"))
+                    .videoCodec("copy")
+                    .audioFilter(`afade=t=in:st=0:d=${fade}`)
+                    .audioFilter(`afade=t=out:st=${duration - fade}:d=${fade}`)
+                    .on("start", (cmd: any) => { console.log(cmd) })
+                    .on("error", (err: Error) => { reject(err) })
+                    .on("end", () => { resolve(true) })
+                    .run()
+            })
+        }
+
+        /*  concatenate cutted videos of all replay slots  */
+        cli?.log("info", "command: EXPORT: video-faded all-in-one replay video")
         await ffmpegConcat({
             concurrency: 8,
             cleanupFrames: true,
             output: args.output!,
-            videos: replays,
+            videos: replays.map((i) => slotName(i, "faded")),
             transition: {
                 name:     transitions[transition].name,
                 duration: transitions[transition].time,
@@ -311,6 +353,8 @@ let cli: CLIio | null = null
             cli!.log("error", `command: EXPORT: FFmpeg: ${err}`)
             return true
         })
+
+        /*  indicate end processing  */
         progress = false
         notifyState()
         cli?.log("info", "command: EXPORT: FFmpeg process: end")
