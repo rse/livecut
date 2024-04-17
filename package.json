@@ -1,7 +1,7 @@
 {
     "private":                              true,
     "name":                                 "LiveCut",
-    "version":                              "1.0.3",
+    "version":                              "1.1.0",
     "homepage":                             "https://github.com/rse/livecut",
     "description":                          "Live Cutting for Replay Video Snippets",
     "license":                              "GPL-3.0-only",
