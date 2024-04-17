@@ -68,7 +68,7 @@ let cli: CLIio | null = null
             .describe("o", "filename of output file")
         .string("c").nargs("c", 1).alias("c", "losslesscut").default("c", "C:\\Program Files\\LosslessCut\\LosslessCut.exe")
             .describe("c", "path to LosslessCut.exe")
-        .string("t").nargs("t", 1).alias("t", "transition").default("t", "DREA")
+        .string("t").nargs("t", 1).alias("t", "transition").default("t", "PERL")
             .describe("t", "name of GL transition to use for exporting")
         .string("a").nargs("a", 1).alias("a", "http-addr").default("a", "127.0.0.1")
             .describe("a", "HTTP/Websocket listen IP address")
@@ -109,17 +109,17 @@ let cli: CLIio | null = null
     const transitions: { [ name: string ]: { name: string, time: number, params?: any } } = {
         /*  see https://gl-transitions.com/gallery  */
         "CUTX": { name: "fade",            time: 33  }, /* special case: emulation of a CUT transition */
-        "FADE": { name: "fade",            time: 500 },
-        "ZOOM": { name: "crosszoom",       time: 500 },
-        "MRPH": { name: "morph",           time: 500 },
-        "DREA": { name: "dreamy",          time: 500 },
-        "RIPP": { name: "ripple",          time: 500 },
-        "WARP": { name: "directionalwarp", time: 500, params: { direction: [ 1, 0 ] } },
-        "WIPE": { name: "wipeleft",        time: 500 },
-        "RADI": { name: "radial",          time: 500 },
-        "CUBE": { name: "cube",            time: 800 },
-        "SWAP": { name: "swap",            time: 800 },
-        "PERL": { name: "perlin",          time: 500, params: { scale: 4.0, smoothness: 0.01, seed: 12.9898 } }
+        "PERL": { name: "perlin",          time: 300, params: { scale: 4.0, smoothness: 0.01, seed: 12.9898 } },
+        "FADE": { name: "fade",            time: 300 },
+        "ZOOM": { name: "crosszoom",       time: 300 },
+        "MRPH": { name: "morph",           time: 300 },
+        "DREA": { name: "dreamy",          time: 300 },
+        "RIPP": { name: "ripple",          time: 300 },
+        "WARP": { name: "directionalwarp", time: 300, params: { direction: [ 1, 0 ] } },
+        "WIPE": { name: "wipeleft",        time: 300 },
+        "RADI": { name: "radial",          time: 300 },
+        "CUBE": { name: "cube",            time: 400 },
+        "SWAP": { name: "swap",            time: 400 }
     }
     let transition: keyof typeof transitions = args.transition! as keyof typeof transitions
     if (!transition)
@@ -298,6 +298,8 @@ let cli: CLIio | null = null
         progress = true
         notifyState()
         await ffmpegConcat({
+            concurrency: 8,
+            cleanupFrames: true,
             output: args.output!,
             videos: replays,
             transition: {
