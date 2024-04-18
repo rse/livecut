@@ -94,7 +94,7 @@ let cli: CLIio | null = null
     cli = new CLIio({
         encoding:  "utf8",
         logLevel:  args.logLevel,
-        logTime:   false,
+        logTime:   true,
         logPrefix: pkg.name
     })
     cli!.log("info", `main: starting LiveCut service ${pkg.version}`)
