@@ -141,13 +141,15 @@ let cli: CLIio | null = null
     }
 
     /*  utility function: determine filename of replay slot  */
-    const slotName = (slot: number, type: "orig" | "cutted" | "faded" | "proj" = "orig") => {
+    const slotName = (slot: number, type: "orig" | "cutted" | "faded" | "overlayed" | "proj" = "orig") => {
         let tag = ""
         let ext = "mp4"
         if (type === "cutted")
             tag = "-cutted"
         else if (type === "faded")
             tag = "-faded"
+        else if (type === "overlayed")
+            tag = "-overlayed"
         else if (type === "proj") {
             tag = "-proj"
             ext = "llc"
@@ -155,8 +157,13 @@ let cli: CLIio | null = null
         return path.join(args.queue!, sprintf("replay-%02d%s.%s", slot, tag, ext))
     }
 
+    /*  utility function: determine creation time of replay slot  */
+    const slotCreationTime = async (slot: number, type: "orig" | "cutted" | "faded" | "overlayed" | "proj" = "orig") =>
+        await fs.promises.stat(slotName(slot, type))
+            .then((stat) => stat.ctime).catch(() => new Date())
+
     /*  utility function: determine whether replay slot is used  */
-    const slotUsed = async (slot: number, type: "orig" | "cutted" | "faded" | "proj" = "orig") =>
+    const slotUsed = async (slot: number, type: "orig" | "cutted" | "faded" | "overlayed" | "proj" = "orig") =>
         await fs.promises.stat(slotName(slot, type))
             .then(() => true).catch(() => false)
 
@@ -168,6 +175,8 @@ let cli: CLIio | null = null
             await fs.promises.rename(slotName(slotSrc, "cutted"), slotName(slotDst, "cutted"))
         if (await slotUsed(slotSrc, "faded"))
             await fs.promises.rename(slotName(slotSrc, "faded"), slotName(slotDst, "faded"))
+        if (await slotUsed(slotSrc, "overlayed"))
+            await fs.promises.rename(slotName(slotSrc, "overlayed"), slotName(slotDst, "overlayed"))
         if (await slotUsed(slotSrc, "proj"))
             await fs.promises.rename(slotName(slotSrc, "proj"), slotName(slotDst, "proj"))
         slotState[slotDst - 1] = slotState[slotSrc - 1]
@@ -184,6 +193,8 @@ let cli: CLIio | null = null
             await fs.promises.unlink(slotName(slot, "cutted"))
         if (await slotUsed(slot, "faded"))
             await fs.promises.unlink(slotName(slot, "faded"))
+        if (await slotUsed(slot, "overlayed"))
+            await fs.promises.unlink(slotName(slot, "overlayed"))
         if (await slotUsed(slot, "proj"))
             await fs.promises.unlink(slotName(slot, "proj"))
         slotState[slot - 1] = SlotStates.CLEAR
@@ -330,7 +341,41 @@ let cli: CLIio | null = null
                     .videoCodec("copy")
                     .audioFilter(`afade=t=in:st=0:d=${fade}`)
                     .audioFilter(`afade=t=out:st=${duration - fade}:d=${fade}`)
-                    .on("start", (cmd: any) => { console.log(cmd) })
+                    .on("start", (cmd: any) => { cli?.log("info", `execute: ${cmd}`) })
+                    .on("stderr", (output: string) => { cli?.log("debug", `ffmpeg: ${output}`) })
+                    .on("error", (err: Error) => { reject(err) })
+                    .on("end", () => { resolve(true) })
+                    .run()
+            })
+        }
+
+        /*  overlay video tracks for replay visual appearance  */
+        cli?.log("info", "command: EXPORT: video-overlayed replay videos")
+        const pngFile = path.join(__dirname, "replay-overlay.png")
+        const ttfFile = path.join(__dirname, "replay-overlay.ttf").replace(/\\/g, "\\\\").replace(/:/g, "\\:")
+        const cfgFile = path.resolve(path.join(__dirname, "fonts.conf"))
+        process.env.FONTCONFIG_FILE = cfgFile
+        for (const i of replays) {
+            const ctime = await slotCreationTime(i, "orig")
+            const timeOffset = ctime.getHours() * (60 * 60) + ctime.getMinutes() * 60 + ctime.getSeconds()
+            await new Promise((resolve, reject) => {
+                ffmpeg(slotName(i, "faded"))
+                    .input(pngFile)
+                    .complexFilter(
+                        "[0:v][1:v] " +
+                            "overlay=W-w:H-h " +
+                        "[v]; " +
+                        "[v] " +
+                            `drawtext= font='TypoPRO Source Sans Pro': fontfile='${ttfFile}': fontsize=50: fontcolor=red: ` +
+                            "x=((w-text_w)-40): y=((h-text_h)-50): " +
+                            `text='%{pts\\:gmtime\\:${timeOffset}\\:%H\\\\\\:%M\\\\\\:%S}' ` +
+                        "[v]",
+                        [ "[v]" ])
+                    .audioCodec("copy")
+                    .addOption([ "-map 0:a" ])
+                    .output(slotName(i, "overlayed"))
+                    .on("start", (cmd: any) => { cli?.log("info", `execute: ${cmd}`) })
+                    .on("stderr", (output: string) => { cli?.log("debug", `ffmpeg: ${output}`) })
                     .on("error", (err: Error) => { reject(err) })
                     .on("end", () => { resolve(true) })
                     .run()
@@ -343,7 +388,7 @@ let cli: CLIio | null = null
             concurrency: 8,
             cleanupFrames: true,
             output: args.output!,
-            videos: replays.map((i) => slotName(i, "faded")),
+            videos: replays.map((i) => slotName(i, "overlayed")),
             transition: {
                 name:     transitions[transition].name,
                 duration: transitions[transition].time,
